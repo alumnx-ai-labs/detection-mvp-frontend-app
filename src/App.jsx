@@ -10,7 +10,7 @@ function App() {
   const [managerThoughts, setManagerThoughts] = useState([]);
 
   // API Configuration - Update this to your server URL
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://your-ec2-server:8000';
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
 
   useEffect(() => {
     checkHealth();
@@ -30,15 +30,6 @@ function App() {
     }
   };
 
-  const getUserId = () => {
-    let userId = localStorage.getItem('diseaseDetectionUserId');
-    if (!userId) {
-      userId = 'user_' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem('diseaseDetectionUserId', userId);
-    }
-    return userId;
-  };
-
   const showLoading = (message = 'Analyzing your crop image...') => {
     setIsLoading(true);
     setLoadingText(message);
@@ -50,7 +41,7 @@ function App() {
   const startDiseaseAnalysisThoughts = () => {
     const thoughts = [
       "🤔 Analyzing your crop image...",
-      "🎯 Identifying potential diseases...",
+      "🎯 Running ImageRAG and Classification...",
       "🔬 Consulting disease detection specialist...",
       "✅ Analysis complete! Preparing response..."
     ];
@@ -59,7 +50,7 @@ function App() {
     thoughts.forEach((thought, index) => {
       setTimeout(() => {
         setManagerThoughts(prev => [...prev, thought]);
-      }, index * 2000);
+      }, index * 3000);
     });
   };
 
@@ -69,43 +60,67 @@ function App() {
     try {
       console.log('📤 Sending disease analysis request...');
 
-      let endpoint, payload;
+      let endpoint, formData;
 
       if (requestData.inputType === 'image') {
-        // Initial disease analysis
-        endpoint = `${API_BASE_URL}/analyze-disease`;
-        payload = {
-          image_data: requestData.content,
-          crop_type: requestData.cropType,
-          sme_advisor: requestData.smeAdvisor || null
-        };
+        // Initial disease analysis using /give-image endpoint
+        endpoint = `${API_BASE_URL}/give-image`;
+        
+        // Create FormData as expected by backend
+        formData = new FormData();
+        formData.append('image', requestData.file); // Use the actual file from the component
+        formData.append('cropType', requestData.cropType);
+        if (requestData.smeAdvisor) {
+          formData.append('smeAdvisor', requestData.smeAdvisor);
+        }
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          console.log('✅ Analysis successful:', result);
+          setResults(result);
+        } else {
+          console.error('❌ Analysis failed:', result);
+          setError(result.detail || 'Analysis failed');
+        }
+
       } else if (requestData.inputType === 'disease_selection') {
-        // User selected a disease from uncertain results
-        endpoint = `${API_BASE_URL}/get-disease-info`;
-        payload = {
-          disease_name: requestData.selectedDisease,
+        // User selected a disease from uncertain results using /confirm-disease
+        endpoint = `${API_BASE_URL}/confirm-disease`;
+        
+        const payload = {
+          disease_class: requestData.selectedDisease,
           crop_type: requestData.cropType,
           sme_advisor: requestData.smeAdvisor || null
         };
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          console.log('✅ Disease confirmation successful:', result);
+          setResults({
+            status: 'confident_prediction',
+            disease_info: result.disease_info
+          });
+        } else {
+          console.error('❌ Disease confirmation failed:', result);
+          setError(result.detail || 'Disease confirmation failed');
+        }
       }
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        console.log('✅ Analysis successful:', result);
-        setResults(result);
-      } else {
-        console.error('❌ Analysis failed:', result);
-        setError(result.error_message || result.error || 'Analysis failed');
-      }
     } catch (error) {
       console.error('❌ Request failed:', error);
       setError('Network error. Please check your connection and try again.');
@@ -125,20 +140,19 @@ function App() {
   const renderResults = () => {
     if (!results) return null;
 
-    // Handle uncertain diagnosis - show similar images for user selection
-    if (results.workflow_status === 'UNCERTAIN' && results.image_rag_results) {
-      return renderUncertainResults(results.image_rag_results);
+    // Handle uncertain prediction - show top possibilities for user selection
+    if (results.status === 'uncertain_prediction' && results.top_possibilities) {
+      return renderUncertainResults(results.top_possibilities);
     }
 
-    // Handle confident diagnosis or user-selected disease info
-    if (results.text_rag_results || results.disease_name) {
-      return renderDiseaseInfo(results.text_rag_results || results);
+    // Handle confident prediction with disease info
+    if (results.status === 'confident_prediction' && results.disease_info) {
+      return renderDiseaseInfo(results.disease_info);
     }
 
-    // Handle error status
-    if (results.workflow_status === 'ERROR') {
-      setError(results.error_message || 'An error occurred during analysis');
-      return null;
+    // Handle processing incomplete
+    if (results.status === 'processing_incomplete') {
+      return renderProcessingIncomplete(results);
     }
 
     // Fallback - show raw response for debugging
@@ -154,7 +168,7 @@ function App() {
     );
   };
 
-  const renderUncertainResults = (imageResults) => {
+  const renderUncertainResults = (topPossibilities) => {
     return (
       <div style={{ background: 'white', borderRadius: '15px', padding: '25px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
         <div style={{ textAlign: 'center', marginBottom: '25px' }}>
@@ -162,7 +176,7 @@ function App() {
             🔍 Similar Diseases Found
           </h2>
           <p style={{ color: '#666', fontSize: '1.1rem' }}>
-            We found similar diseases. Please select the one that best matches your observation:
+            Unable to determine disease with confidence. Please select the disease that best matches your observation:
           </p>
         </div>
 
@@ -172,7 +186,7 @@ function App() {
           gap: '20px',
           marginBottom: '25px'
         }}>
-          {imageResults.slice(0, 5).map((result, index) => (
+          {topPossibilities.slice(0, 5).map((result, index) => (
             <div 
               key={index}
               onClick={() => handleDiseaseSelection(result.disease_name)}
@@ -186,12 +200,12 @@ function App() {
                 textAlign: 'center'
               }}
               onMouseEnter={(e) => {
-                e.target.style.borderColor = '#4a7c59';
-                e.target.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+                e.currentTarget.style.borderColor = '#4a7c59';
+                e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
               }}
               onMouseLeave={(e) => {
-                e.target.style.borderColor = '#e0e0e0';
-                e.target.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = '#e0e0e0';
+                e.currentTarget.style.boxShadow = 'none';
               }}
             >
               {result.image_url && (
@@ -239,10 +253,72 @@ function App() {
     const requestData = {
       inputType: 'disease_selection',
       selectedDisease: diseaseName,
-      cropType: results.crop_type || 'unknown',
-      smeAdvisor: results.sme_advisor || null
+      cropType: 'unknown', // We don't have this from the uncertain response
+      smeAdvisor: null
     };
     handleAnalyze(requestData);
+  };
+
+  const renderProcessingIncomplete = (data) => {
+    return (
+      <div style={{ background: 'white', borderRadius: '15px', padding: '25px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
+        <div style={{ textAlign: 'center', marginBottom: '25px' }}>
+          <h2 style={{ color: '#ffc107', marginBottom: '10px', fontSize: '1.8rem' }}>
+            ⚠️ Analysis Incomplete
+          </h2>
+          <p style={{ color: '#666', fontSize: '1.1rem' }}>
+            {data.message}
+          </p>
+        </div>
+
+        {data.partial_results && (
+          <div style={{ marginBottom: '25px' }}>
+            <h4 style={{ color: '#4a7c59', marginBottom: '15px', fontSize: '1.2rem' }}>
+              Partial Results:
+            </h4>
+            
+            {data.partial_results.classification && (
+              <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '15px' }}>
+                <h5 style={{ color: '#2c5530', marginBottom: '10px' }}>Classification Result:</h5>
+                <p><strong>Disease:</strong> {data.partial_results.classification.disease_name}</p>
+                <p><strong>Confidence:</strong> {(data.partial_results.classification.confidence * 100).toFixed(1)}%</p>
+                <p><strong>Description:</strong> {data.partial_results.classification.description}</p>
+              </div>
+            )}
+
+            {data.partial_results.similar_diseases && data.partial_results.similar_diseases.length > 0 && (
+              <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px' }}>
+                <h5 style={{ color: '#2c5530', marginBottom: '10px' }}>Similar Diseases Found:</h5>
+                {data.partial_results.similar_diseases.slice(0, 3).map((disease, index) => (
+                  <div key={index} style={{ marginBottom: '8px' }}>
+                    <strong>{disease.disease_name}</strong> - {(disease.confidence * 100).toFixed(1)}% confidence
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div style={{ textAlign: 'center' }}>
+          <button
+            onClick={resetInterface}
+            style={{
+              padding: '12px 30px',
+              border: 'none',
+              borderRadius: '8px',
+              background: '#4a7c59',
+              color: 'white',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            Try Another Image
+          </button>
+        </div>
+      </div>
+    );
   };
 
   const renderDiseaseInfo = (diseaseData) => {

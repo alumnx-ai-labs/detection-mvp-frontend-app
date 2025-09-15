@@ -1,135 +1,46 @@
 // src/components/DiseaseDetection.jsx
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const DiseaseDetection = ({ onAnalyze, isLoading }) => {
-  const [selectedImageData, setSelectedImageData] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState(null);
   const [selectedCrop, setSelectedCrop] = useState('');
   const [selectedSME, setSelectedSME] = useState('');
-  const [textDescription, setTextDescription] = useState('');
   const [analyzeEnabled, setAnalyzeEnabled] = useState(false);
-  
-  // Available options (these would typically come from API endpoints)
-  const [availableCrops, setAvailableCrops] = useState([]);
-  const [availableSMEs, setAvailableSMEs] = useState([]);
-  
-  // Teachable Machine integration states
-  const [model, setModel] = useState(null);
-  const [isModelLoading, setIsModelLoading] = useState(false);
-  const [predictions, setPredictions] = useState(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  // API Configuration
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://your-ec2-server:8000';
+  // Hardcoded crop options (since backend doesn't have /available-crops endpoint)
+  const availableCrops = [
+    'Mango'
+  ];
 
-  // Hardcoded Teachable Machine models for different crops
-  const CROP_MODELS = {
-    'tomato': {
-      url: 'https://teachablemachine.withgoogle.com/models/ufKan6pzm/'
-    },
-    'potato': {
-      url: 'https://teachablemachine.withgoogle.com/models/6UdJBojDI/'
-    },
-    'mango': {
-      url: 'https://teachablemachine.withgoogle.com/models/ufKan6pzm/'
-    },
-    'sweet_lime': {
-      url: 'https://teachablemachine.withgoogle.com/models/6UdJBojDI/'
-    },
-    'wheat': {
-      url: 'https://teachablemachine.withgoogle.com/models/ufKan6pzm/'
-    },
-    'rice': {
-      url: 'https://teachablemachine.withgoogle.com/models/6UdJBojDI/'
-    }
-  };
-
-  // Load available crops and SMEs on component mount
-  useEffect(() => {
-    loadAvailableOptions();
-  }, []);
-
-  const loadAvailableOptions = async () => {
-    try {
-      // Load available crops
-      const cropsResponse = await fetch(`${API_BASE_URL}/available-crops`);
-      if (cropsResponse.ok) {
-        const crops = await cropsResponse.json();
-        setAvailableCrops(crops);
-      } else {
-        // Fallback to hardcoded options
-        setAvailableCrops(['tomato', 'potato', 'mango', 'sweet_lime', 'wheat', 'rice']);
-      }
-
-      // Load available SMEs
-      const smesResponse = await fetch(`${API_BASE_URL}/available-smes`);
-      if (smesResponse.ok) {
-        const smes = await smesResponse.json();
-        setAvailableSMEs(smes);
-      } else {
-        // Fallback to hardcoded options
-        setAvailableSMEs(['Dr. Smith - Plant Pathologist', 'Dr. Johnson - Crop Expert', null]);
-      }
-    } catch (error) {
-      console.error('Error loading available options:', error);
-      // Use fallback options
-      setAvailableCrops(['tomato', 'potato', 'mango', 'sweet_lime', 'wheat', 'rice']);
-      setAvailableSMEs(['Dr. Smith - Plant Pathologist', 'Dr. Johnson - Crop Expert', null]);
-    }
-  };
-
-  // Load Teachable Machine model based on selectedCrop
-  const loadDiseaseModel = useCallback(async () => {
-    if (model || !selectedCrop || !CROP_MODELS[selectedCrop]) return model;
-    
-    setIsModelLoading(true);
-    try {
-      if (!window.tmImage) {
-        throw new Error('Teachable Machine library not loaded. Please include the script in your HTML.');
-      }
-
-      const modelBaseURL = CROP_MODELS[selectedCrop].url;
-      const modelURL = modelBaseURL + "model.json";
-      const metadataURL = modelBaseURL + "metadata.json";
-
-      console.log(`Loading ${selectedCrop} disease detection model from:`, modelURL);
-      const loadedModel = await window.tmImage.load(modelURL, metadataURL);
-      setModel(loadedModel);
-      console.log(`Model loaded successfully for ${selectedCrop}`);
-      return loadedModel;
-    } catch (error) {
-      console.error(`Error loading ${selectedCrop} disease detection model:`, error);
-      return null;
-    } finally {
-      setIsModelLoading(false);
-    }
-  }, [model, selectedCrop]);
+  // Hardcoded SME options (since backend doesn't have /available-smes endpoint)
+  const availableSMEs = [
+    'Dr. Plant Pathologist',
+    'Dr. Crop Expert',
+    'Agricultural Specialist'
+  ];
 
   const handleCropChange = (event) => {
     const newCrop = event.target.value;
     setSelectedCrop(newCrop);
-    // Reset model and predictions when crop changes
-    setModel(null);
-    setPredictions(null);
-    updateAnalyzeEnabled(selectedImageData, newCrop);
+    updateAnalyzeEnabled(selectedFile, newCrop);
   };
 
   const handleSMEChange = (event) => {
     setSelectedSME(event.target.value);
   };
 
-  const updateAnalyzeEnabled = (imageData, crop) => {
-    setAnalyzeEnabled(imageData && crop);
+  const updateAnalyzeEnabled = (file, crop) => {
+    setAnalyzeEnabled(file && crop);
   };
 
   const handleImageSelection = (event) => {
     const file = event.target.files[0];
     
     if (!file) {
-      setSelectedImageData(null);
+      setSelectedFile(null);
       setSelectedImageUrl(null);
       setAnalyzeEnabled(false);
-      setPredictions(null);
       return;
     }
 
@@ -143,42 +54,14 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64Data = e.target.result.split(',')[1];
-      setSelectedImageData(base64Data);
-      setSelectedImageUrl(URL.createObjectURL(file));
-      updateAnalyzeEnabled(base64Data, selectedCrop);
-      setPredictions(null);
-      console.log('Image selected and converted to base64');
-    };
-
-    reader.onerror = () => {
-      alert('Error reading image file.');
-      setSelectedImageData(null);
-      setSelectedImageUrl(null);
-      setAnalyzeEnabled(false);
-      setPredictions(null);
-    };
-
-    reader.readAsDataURL(file);
-  };
-
-  const classifyDiseaseImage = async (imageElement, loadedModel) => {
-    try {
-      const predictions = await loadedModel.predict(imageElement);
-      return predictions.map(pred => ({
-        className: pred.className,
-        probability: pred.probability
-      }));
-    } catch (error) {
-      console.error('Error classifying disease image:', error);
-      return null;
-    }
+    setSelectedFile(file);
+    setSelectedImageUrl(URL.createObjectURL(file));
+    updateAnalyzeEnabled(file, selectedCrop);
+    console.log('Image selected for upload');
   };
 
   const analyzeImage = async () => {
-    if (!selectedImageData || !selectedImageUrl) {
+    if (!selectedFile) {
       alert('Please select an image first.');
       return;
     }
@@ -188,70 +71,38 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
       return;
     }
 
-    setIsAnalyzing(true);
-
     try {
-      // Try to load and run Teachable Machine model for immediate feedback
-      let tmPredictions = null;
-      if (CROP_MODELS[selectedCrop]) {
-        const loadedModel = await loadDiseaseModel();
-        if (loadedModel) {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-
-          tmPredictions = await new Promise((resolve) => {
-            img.onload = async () => {
-              try {
-                const result = await classifyDiseaseImage(img, loadedModel);
-                resolve(result);
-              } catch (error) {
-                console.error('TM classification error:', error);
-                resolve(null);
-              }
-            };
-            
-            img.onerror = () => resolve(null);
-            img.src = selectedImageUrl;
-          });
-
-          if (tmPredictions) {
-            const sortedPredictions = tmPredictions.sort((a, b) => b.probability - a.probability);
-            setPredictions(sortedPredictions);
-            console.log('Teachable Machine results:', sortedPredictions);
-          }
-        }
-      }
-
-      // Send to main API for comprehensive analysis
-      if (onAnalyze) {
+      // Convert file to base64 for the onAnalyze callback
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64Data = e.target.result.split(',')[1];
+        
         const requestData = {
           inputType: 'image',
-          content: selectedImageData,
+          content: base64Data,
           cropType: selectedCrop,
           smeAdvisor: selectedSME || null,
-          textDescription: textDescription.trim(),
-          tmPredictions: tmPredictions // Include TM predictions
+          file: selectedFile // Include the actual file for FormData
         };
         
         await onAnalyze(requestData);
-      }
+      };
+      
+      reader.readAsDataURL(selectedFile);
+
     } catch (error) {
       console.error('Error during image analysis:', error);
       alert('An error occurred during analysis. Please try again.');
-    } finally {
-      setIsAnalyzing(false);
     }
   };
 
   const clearImage = () => {
+    setSelectedFile(null);
     setSelectedImageUrl(null);
-    setSelectedImageData(null);
     setAnalyzeEnabled(false);
-    setPredictions(null);
   };
 
-  const isProcessing = isLoading || isModelLoading || isAnalyzing;
-  const isAnalyzeButtonDisabled = !analyzeEnabled || isProcessing;
+  const isAnalyzeButtonDisabled = !analyzeEnabled || isLoading;
 
   return (
     <div style={{ 
@@ -302,7 +153,7 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
             <option value="" disabled>-- Choose a crop --</option>
             {availableCrops.map(cropName => (
               <option key={cropName} value={cropName}>
-                {cropName.charAt(0).toUpperCase() + cropName.slice(1).replace('_', ' ')}
+                {cropName.charAt(0).toUpperCase() + cropName.slice(1)}
               </option>
             ))}
           </select>
@@ -337,8 +188,8 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
           >
             <option value="">-- No specific advisor --</option>
             {availableSMEs.map((sme, index) => (
-              <option key={index} value={sme || ''}>
-                {sme || 'General Analysis'}
+              <option key={index} value={sme}>
+                {sme}
               </option>
             ))}
           </select>
@@ -461,108 +312,6 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
           )}
         </div>
 
-        {/* Text Description */}
-        <div>
-          <label style={{ 
-            display: 'block',
-            color: '#4a7c59', 
-            fontWeight: '600', 
-            marginBottom: '10px',
-            fontSize: '1.1rem'
-          }}>
-            4. Additional Symptoms (Optional)
-          </label>
-          <textarea
-            value={textDescription}
-            onChange={(e) => setTextDescription(e.target.value)}
-            placeholder="Describe any additional symptoms you notice (leaf spots, wilting, discoloration, etc.)..."
-            style={{
-              width: '100%',
-              padding: '15px',
-              border: '2px solid #e0e0e0',
-              borderRadius: '10px',
-              fontSize: '1rem',
-              resize: 'vertical',
-              minHeight: '100px',
-              boxSizing: 'border-box',
-              fontFamily: 'inherit'
-            }}
-          />
-        </div>
-
-        {/* Teachable Machine Results */}
-        {predictions && (
-          <div style={{ 
-            background: '#f8f9fa', 
-            border: '1px solid #dee2e6', 
-            borderRadius: '10px', 
-            padding: '20px' 
-          }}>
-            <h4 style={{ 
-              color: '#4a7c59', 
-              marginBottom: '15px', 
-              fontSize: '1.2rem',
-              fontWeight: '600',
-            }}>
-              🎯 Quick AI Prediction for {selectedCrop}
-            </h4>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {predictions.slice(0, 3).map((prediction, index) => (
-                <div 
-                  key={index}
-                  style={{
-                    background: 'white',
-                    padding: '15px',
-                    borderRadius: '8px',
-                    border: index === 0 ? '2px solid #28a745' : '1px solid #e0e0e0',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ 
-                      fontWeight: index === 0 ? '700' : '600',
-                      color: index === 0 ? '#28a745' : '#333',
-                      fontSize: index === 0 ? '1.1rem' : '1rem'
-                    }}>
-                      {index === 0 && '🏆 '}{prediction.className}
-                    </span>
-                    <span style={{ 
-                      fontWeight: '700',
-                      color: index === 0 ? '#28a745' : '#666',
-                    }}>
-                      {(prediction.probability * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                  <div style={{ 
-                    background: '#f1f3f4', 
-                    borderRadius: '10px', 
-                    overflow: 'hidden',
-                    height: '6px'
-                  }}>
-                    <div 
-                      style={{ 
-                        background: index === 0 ? '#28a745' : '#6c757d',
-                        height: '100%',
-                        width: `${prediction.probability * 100}%`,
-                        transition: 'width 0.5s ease'
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p style={{ 
-              color: '#666', 
-              fontSize: '0.9rem', 
-              marginTop: '15px',
-              fontStyle: 'italic',
-              textAlign: 'center'
-            }}>
-              This is a preliminary AI analysis. Click "Get Detailed Analysis" for comprehensive expert diagnosis.
-            </p>
-          </div>
-        )}
-
         {/* Analyze Button */}
         <div style={{ textAlign: 'center' }}>
           <button
@@ -582,13 +331,10 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
               minWidth: '250px'
             }}
           >
-            {isModelLoading ? '⏳ Loading AI Model...' : 
-             isAnalyzing ? '🔄 Analyzing Image...' : 
-             predictions ? '🔬 Get Detailed Analysis' :
-             '🔍 Analyze Crop Disease'}
+            {isLoading ? '🔄 Analyzing...' : '🔍 Analyze Crop Disease'}
           </button>
           
-          {(!selectedCrop || !selectedImageUrl) && (
+          {(!selectedCrop || !selectedFile) && (
             <p style={{ color: '#999', fontSize: '0.9rem', marginTop: '10px' }}>
               {!selectedCrop 
                 ? 'Please select a crop to begin' 
@@ -614,24 +360,9 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
             <li style={{ marginBottom: '8px' }}>Focus on affected areas (leaves, fruits, stems)</li>
             <li style={{ marginBottom: '8px' }}>Avoid blurry or very dark images</li>
             <li style={{ marginBottom: '8px' }}>Include multiple symptoms if visible</li>
-            <li>Describe additional observations in the text field</li>
+            <li>Choose the correct crop type for accurate results</li>
           </ul>
         </div>
-
-        {/* Model Status */}
-        {isModelLoading && (
-          <div style={{ 
-            background: '#fff3cd', 
-            border: '1px solid #ffeaa7', 
-            borderRadius: '10px', 
-            padding: '15px',
-            textAlign: 'center'
-          }}>
-            <p style={{ color: '#856404', margin: 0, fontWeight: '600' }}>
-              ⏳ Loading AI model for {selectedCrop}...
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );
