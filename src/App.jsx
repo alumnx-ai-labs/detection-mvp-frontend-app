@@ -8,7 +8,7 @@ const diseaseData = {
     prevention: "Preventing anthracnose involves a multi-faceted approach. Proper orchard sanitation is critical, including removal of infected plant debris. Ensure good air circulation through proper pruning and maintain adequate tree spacing. Avoid overhead irrigation and water early in the day to allow foliage to dry quickly. Apply copper-based fungicides as preventive sprays during flowering and fruit development. Select resistant varieties when available. Avoid excessive nitrogen fertilization. Harvest fruits at proper maturity and handle carefully to avoid wounds.",
     treatment: "Treatment options for anthracnose include application of systemic fungicides such as propiconazole or azoxystrobin. For organic management, use copper sulfate or neem oil. Post-harvest treatments with hot water (52°C for 5 minutes) can reduce infection on harvested fruits. Regular monitoring and early intervention are crucial for effective management.",
     additional_info: "Environmental factors that favor anthracnose development include high humidity (above 95%), temperatures between 25-30°C, and prolonged leaf wetness. The disease is most severe during rainy seasons. Spores are spread by rain splash and wind. Understanding these conditions helps in timing preventive measures effectively. Early intervention is crucial for effective management.",
-    confidence_score: 0.95,
+    confidence_score: 0.90,
     source_documents: [
       "Plant Pathology Handbook - Anthracnose Management",
       "Integrated Disease Management Guidelines",
@@ -86,7 +86,7 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
 
   const handleImageSelection = (event) => {
     const file = event.target.files[0];
-    
+
     if (!file) {
       setSelectedFile(null);
       setSelectedImageUrl(null);
@@ -115,7 +115,7 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
       alert('Please select an image first.');
       return;
     }
-    
+
     if (!selectedCrop) {
       alert('Please select a crop before analyzing.');
       return;
@@ -128,7 +128,7 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
       smeAdvisor: selectedSME || null,
       file: selectedFile
     };
-    
+
     await onAnalyze(requestData);
   };
 
@@ -141,12 +141,12 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
   const isAnalyzeButtonDisabled = !analyzeEnabled || isLoading;
 
   return (
-    <div style={{ 
-      background: 'white', 
-      padding: '30px', 
-      borderRadius: '15px', 
-      boxShadow: '0 10px 30px rgba(0,0,0,0.1)', 
-      marginBottom: '30px' 
+    <div style={{
+      background: 'white',
+      padding: '30px',
+      borderRadius: '15px',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+      marginBottom: '30px'
     }}>
       <div style={{ marginBottom: '30px', textAlign: 'center' }}>
         <h2 style={{ color: '#4a7c59', marginBottom: '10px', fontSize: '1.8rem' }}>
@@ -158,13 +158,13 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
-        
+
         {/* Crop Selection */}
         <div>
-          <label htmlFor="cropSelect" style={{ 
+          <label htmlFor="cropSelect" style={{
             display: 'block',
-            color: '#4a7c59', 
-            fontWeight: '600', 
+            color: '#4a7c59',
+            fontWeight: '600',
             marginBottom: '10px',
             fontSize: '1.1rem'
           }}>
@@ -197,10 +197,10 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
 
         {/* SME Selection (Optional) */}
         <div>
-          <label htmlFor="smeSelect" style={{ 
+          <label htmlFor="smeSelect" style={{
             display: 'block',
-            color: '#4a7c59', 
-            fontWeight: '600', 
+            color: '#4a7c59',
+            fontWeight: '600',
             marginBottom: '10px',
             fontSize: '1.1rem'
           }}>
@@ -232,7 +232,7 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
         </div>
 
         {/* Image Upload Section */}
-        <div style={{ 
+        <div style={{
           border: selectedImageUrl ? '2px solid #4a7c59' : '2px dashed #cbd5e0',
           borderRadius: '15px',
           padding: '30px',
@@ -250,13 +250,13 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
                 3. Upload Crop Image *
               </h3>
               <p style={{ color: '#666', marginBottom: '20px', fontSize: '0.9rem' }}>
-                {selectedCrop 
+                {selectedCrop
                   ? `Take a clear photo of your ${selectedCrop} for accurate diagnosis`
                   : 'Please select a crop first'
                 }
               </p>
-              <label 
-                htmlFor="imageInput" 
+              <label
+                htmlFor="imageInput"
                 style={{
                   display: 'inline-block',
                   padding: '12px 30px',
@@ -286,9 +286,9 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
             </div>
           ) : (
             <div>
-              <div style={{ 
+              <div style={{
                 background: 'white',
-                borderRadius: '10px', 
+                borderRadius: '10px',
                 overflow: 'hidden',
                 marginBottom: '15px',
                 boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
@@ -296,17 +296,17 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
                 <img
                   src={selectedImageUrl}
                   alt="Selected crop"
-                  style={{ 
-                    width: '100%', 
-                    maxHeight: '300px', 
+                  style={{
+                    width: '100%',
+                    maxHeight: '300px',
                     objectFit: 'contain',
                     display: 'block'
                   }}
                 />
               </div>
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <label 
-                  htmlFor="imageInput" 
+                <label
+                  htmlFor="imageInput"
                   style={{
                     display: 'inline-block',
                     padding: '8px 20px',
@@ -369,11 +369,11 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
           >
             {isLoading ? '🔄 Analyzing...' : '🔍 Analyze Crop Disease'}
           </button>
-          
+
           {(!selectedCrop || !selectedFile) && (
             <p style={{ color: '#999', fontSize: '0.9rem', marginTop: '10px' }}>
-              {!selectedCrop 
-                ? 'Please select a crop to begin' 
+              {!selectedCrop
+                ? 'Please select a crop to begin'
                 : 'Please upload an image to start analysis'
               }
             </p>
@@ -381,7 +381,7 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
         </div>
 
         {/* Tips Section */}
-        <div style={{ 
+        {/* <div style={{ 
           background: '#e3f2fd', 
           border: '1px solid #bbdefb', 
           borderRadius: '10px', 
@@ -398,7 +398,7 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
             <li style={{ marginBottom: '8px' }}>Include multiple symptoms if visible</li>
             <li>Choose the correct crop type for accurate results</li>
           </ul>
-        </div>
+        </div> */}
       </div>
     </div>
   );
@@ -424,57 +424,52 @@ function App() {
   const startAnalysisProgress = async (fileName) => {
     const isAnthracnoseImage = fileName.toLowerCase() === 'anthracnose002.jpg';
     const confidence = generateConfidence(isAnthracnoseImage);
-    
+
     setIsLoading(true);
     setResults(null);
     setError(null);
     setManagerThoughts([]);
 
-    // Progress messages with delays
-    const progressSteps = [
-      "📥 We have received the Image",
-      "🤖 The mobilenet classification model is working on it",
-      `🎯 The classification results are Anthracnose with confidence of ${(confidence * 100).toFixed(1)}%`,
-      "🔍 Giving the image to Image RAG"
-    ];
-
-    // Show progress messages
-    for (let i = 0; i < progressSteps.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, i === 0 ? 1000 : 2000));
-      setManagerThoughts(prev => [...prev, progressSteps[i]]);
-    }
-
-    // Wait before showing RAG results
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
     if (isAnthracnoseImage) {
-      // Show confident results for Anthracnose002.jpg
-      setManagerThoughts(prev => [...prev, 
-        "✅ Here are the results:",
-        "Rank 1: 0.95, Class: Anthracnose",
-        "Rank 2: 0.94, Class: Anthracnose", 
-        "Rank 3: 0.94, Class: Anthracnose",
-        "Rank 4: 0.92, Class: Anthracnose",
-        "Rank 5: 0.89, Class: Anthracnose"
-      ]);
+      // Progress for Anthracnose002.jpg (confident result)
+      const progressSteps = [
+        "Step 1: Agent Initialized",
+        "Step 2: Agent forwarded the image to both Classification tool and Image RAG tool simultaneously",
+        "Step 3.1: MobileNET has received the image",
+        "Step 3.2: Image RAG has received the image",
+        `Step 4.1: The Pretrained MobileNET model's result is Anthracnose with confidence of ${(confidence * 100).toFixed(1)}%`,
+        "Step 4.2: Here are the Image RAG results:\n    Rank 1: 0.95, Class: Anthracnose\n    Rank 2: 0.94, Class: Anthracnose\n    Rank 3: 0.94, Class: Anthracnose\n    Rank 4: 0.92, Class: Anthracnose\n    Rank 5: 0.89, Class: Anthracnose"
+      ];
+
+      // Show progress messages
+      for (let i = 0; i < progressSteps.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, i === 0 ? 1000 : 2000));
+        setManagerThoughts(prev => [...prev, progressSteps[i]]);
+      }
 
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       setResults({
         status: 'confident_prediction',
         disease_info: diseaseData.Anthracnose
       });
       setIsLoading(false);
     } else {
-      // Show uncertain results for other images
-      setManagerThoughts(prev => [...prev,
-        "⚠️ Here are the Image RAG results:",
-        "Rank 1: 0.65, Class: Anthracnose",
-        "Rank 2: 0.61, Class: Gall_Midge",
-        "Rank 3: 0.45, Class: Bacterial_Canker",
-        "Rank 4: 0.44, Class: Bacterial_Canker", 
-        "Rank 5: 0.44, Class: Gall_Midge"
-      ]);
+      // Progress for other images (uncertain result)
+      const progressSteps = [
+        "Step 1: Agent Initialized",
+        "Step 2: Agent forwarded the image to both Classification tool and Image RAG tool simultaneously",
+        "Step 3.1: MobileNET has received the image",
+        "Step 3.2: Image RAG has received the image",
+        `Step 4.1: The Pretrained MobileNET model's result is Anthracnose with confidence of ${(confidence * 100).toFixed(1)}%`,
+        "Step 4.2: Here are the Image RAG results:\n    Rank 1: 0.65, Class: Anthracnose\n    Rank 2: 0.61, Class: Gall_Midge\n    Rank 3: 0.45, Class: Bacterial_Canker\n    Rank 4: 0.44, Class: Bacterial_Canker\n    Rank 5: 0.44, Class: Gall_Midge"
+      ];
+
+      // Show progress messages
+      for (let i = 0; i < progressSteps.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, i === 0 ? 1000 : 2000));
+        setManagerThoughts(prev => [...prev, progressSteps[i]]);
+      }
 
       await new Promise(resolve => setTimeout(resolve, 2000));
 
@@ -502,10 +497,10 @@ function App() {
   const handleDiseaseSelection = async (diseaseName) => {
     setIsLoading(true);
     setLoadingText('Getting detailed disease information...');
-    
+
     // Simulate processing time
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
+
     // Return generic information for any selected disease
     const genericDiseaseInfo = {
       disease_name: diseaseName,
@@ -519,12 +514,12 @@ function App() {
         "Agricultural Extension Recommendations"
       ]
     };
-    
+
     setResults({
       status: 'confident_prediction',
       disease_info: genericDiseaseInfo
     });
-    
+
     setIsLoading(false);
   };
 
@@ -671,6 +666,8 @@ function App() {
       <div style={{ background: 'white', borderRadius: '15px', padding: '25px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
         <div style={{ borderBottom: '2px solid #f0f0f0', paddingBottom: '15px', marginBottom: '25px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+
+
             <h2 style={{ color: '#2c5530', fontSize: '1.8rem', fontWeight: 'bold', margin: 0 }}>
               {diseaseData.disease_name}
             </h2>
@@ -828,11 +825,11 @@ function App() {
           {/* Disease Detection Component */}
           <DiseaseDetection onAnalyze={handleAnalyze} isLoading={isLoading} />
 
-          {/* Loading/Analysis Progress Section */}
+          {/* Combined Analysis and Results Section */}
           {(isLoading || (results && managerThoughts.length > 0)) && (
             <div style={{
               background: 'white',
-              padding: '40px',
+              padding: '30px',
               borderRadius: '15px',
               boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
               textAlign: 'center',
@@ -849,7 +846,7 @@ function App() {
                   margin: '0 auto 20px'
                 }}></div>
               )}
-              
+
               {isLoading && (
                 <p style={{ fontSize: '1.2rem', fontWeight: '600', color: '#333', marginBottom: '20px' }}>
                   {loadingText || 'Analyzing your crop image...'}
@@ -857,34 +854,225 @@ function App() {
               )}
 
               {managerThoughts.length > 0 && (
-                <div style={{ textAlign: 'left', maxWidth: '500px', margin: '0 auto' }}>
-                  <h3 style={{ color: '#4a7c59', marginBottom: '15px', textAlign: 'center' }}>
-                    Analysis Progress:
-                  </h3>
-                  {managerThoughts.map((thought, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        background: '#e8f5e8',
-                        padding: '10px 15px',
-                        borderRadius: '20px',
-                        margin: '10px 0',
-                        borderLeft: '4px solid #4a7c59',
-                        fontSize: '0.95rem'
-                      }}
-                    >
-                      {thought}
+                <div style={{ marginBottom: results ? '30px' : '0' }}>
+                  <div style={{
+                    background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    textAlign: 'left',
+                    fontFamily: 'Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace'
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '15px',
+                      paddingBottom: '10px',
+                      borderBottom: '1px solid #dee2e6'
+                    }}>
+                      <div style={{
+                        width: '12px',
+                        height: '12px',
+                        borderRadius: '50%',
+                        background: '#dc3545',
+                        marginRight: '8px'
+                      }}></div>
+                      <div style={{
+                        width: '12px',
+                        height: '12px',
+                        borderRadius: '50%',
+                        background: '#ffc107',
+                        marginRight: '8px'
+                      }}></div>
+                      <div style={{
+                        width: '12px',
+                        height: '12px',
+                        borderRadius: '50%',
+                        background: '#28a745',
+                        marginRight: '15px'
+                      }}></div>
+                      <span style={{
+                        color: '#6c757d',
+                        fontSize: '0.9rem',
+                        fontWeight: '500'
+                      }}>
+                        Agent Analysis Process
+                      </span>
                     </div>
-                  ))}
+                    {managerThoughts.map((thought, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          background: index % 2 === 0 ? 'rgba(74, 124, 89, 0.05)' : 'rgba(74, 124, 89, 0.08)',
+                          padding: '12px 16px',
+                          borderRadius: '6px',
+                          margin: '8px 0',
+                          borderLeft: '3px solid #4a7c59',
+                          fontSize: '0.9rem',
+                          color: '#2c5530',
+                          whiteSpace: 'pre-line',
+                          lineHeight: '1.4'
+                        }}
+                      >
+                        {thought}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
-            </div>
-          )}
 
-          {/* Results Section */}
-          {results && !isLoading && (
-            <div style={{ marginTop: '30px' }}>
-              {renderResults()}
+              {/* Results Section - now inside the same container */}
+              {results && !isLoading && (
+                <div>
+                  {/* Agent Analysis Summary */}
+                  <div style={{
+                    background: 'linear-gradient(135deg, #e8f5e8 0%, #f0fdf4 100%)',
+                    border: '1px solid #4a7c59',
+                    borderRadius: '8px',
+                    padding: '15px',
+                    marginBottom: '25px',
+                    textAlign: 'left'
+                  }}>
+                    <div style={{
+                      fontWeight: '600',
+                      color: '#2c5530',
+                      fontSize: '1.2rem',
+                      marginBottom: '8px'
+                    }}>
+                      Agent Analysis
+                    </div>
+                    <div style={{
+                      color: '#4a7c59',
+                      fontSize: '0.95rem',
+                      lineHeight: '1.4'
+                    }}>
+                      {results.status === 'confident_prediction'
+                        ? 'Agent has detected and determined that this disease is Anthracnose.'
+                        : 'Agent was unable to detect a specific disease. Please choose from the below most likely diseases.'
+                      }
+                    </div>
+                  </div>
+
+                  {results.status === 'uncertain_prediction' && results.top_possibilities ? (
+                    <div>
+                      <div style={{ textAlign: 'center', marginBottom: '25px' }}>
+                        <h2 style={{ color: '#4a7c59', marginBottom: '10px', fontSize: '1.8rem' }}>
+                          Similar Diseases Found
+                        </h2>
+                        <p style={{ color: '#666', fontSize: '1.1rem' }}>
+                          Unable to determine disease with confidence. Please select the disease that best matches your observation:
+                        </p>
+                      </div>
+
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                        gap: '20px'
+                      }}>
+                        {results.top_possibilities.slice(0, 5).map((result, index) => (
+                          <div
+                            key={index}
+                            onClick={() => handleDiseaseSelection(result.disease_name)}
+                            style={{
+                              background: '#f8f9fa',
+                              border: '2px solid #e0e0e0',
+                              borderRadius: '10px',
+                              padding: '15px',
+                              cursor: 'pointer',
+                              transition: 'all 0.3s ease',
+                              textAlign: 'center'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = '#4a7c59';
+                              e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = '#e0e0e0';
+                              e.currentTarget.style.boxShadow = 'none';
+                            }}
+                          >
+                            <div style={{ marginBottom: '15px', height: '200px', position: 'relative' }}>
+                              {imageLoadingStates[index] === 'loading' && (
+                                <div style={{
+                                  position: 'absolute',
+                                  top: '50%',
+                                  left: '50%',
+                                  transform: 'translate(-50%, -50%)',
+                                  zIndex: 2
+                                }}>
+                                  <div style={{
+                                    width: '30px',
+                                    height: '30px',
+                                    border: '3px solid #f3f3f3',
+                                    borderTop: '3px solid #4a7c59',
+                                    borderRadius: '50%',
+                                    animation: 'spin 1s linear infinite'
+                                  }}></div>
+                                </div>
+                              )}
+                              {result.image_url && result.has_image !== false && imageLoadingStates[index] !== 'error' ? (
+                                <img
+                                  src={result.image_url}
+                                  alt={result.disease_name}
+                                  style={{
+                                    width: '100%',
+                                    height: '200px',
+                                    objectFit: 'cover',
+                                    borderRadius: '8px',
+                                    border: '1px solid #ddd',
+                                    opacity: imageLoadingStates[index] === 'loading' ? 0.5 : 1
+                                  }}
+                                  onLoad={() => handleImageLoad(index)}
+                                  onError={() => handleImageError(index)}
+                                />
+                              ) : (
+                                <div
+                                  style={{
+                                    width: '100%',
+                                    height: '200px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: '#f8f9fa',
+                                    border: '2px dashed #dee2e6',
+                                    borderRadius: '8px',
+                                    flexDirection: 'column',
+                                    color: '#6c757d'
+                                  }}
+                                >
+                                  <div style={{ fontSize: '2rem', marginBottom: '8px' }}>📷</div>
+                                  <div style={{ fontSize: '0.9rem', textAlign: 'center' }}>
+                                    No reference image available
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <h4 style={{ color: '#2c5530', marginBottom: '8px', fontSize: '1.2rem' }}>
+                              {result.disease_name}
+                            </h4>
+                            <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '8px' }}>
+                              {result.description}
+                            </p>
+                            <div style={{
+                              background: '#e8f5e8',
+                              padding: '5px 10px',
+                              borderRadius: '15px',
+                              display: 'inline-block'
+                            }}>
+                              <span style={{ color: '#2c5530', fontWeight: '600', fontSize: '0.9rem' }}>
+                                {(result.confidence * 100).toFixed(0)}% match
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : results.status === 'confident_prediction' && results.disease_info ? (
+
+                    renderDiseaseInfo(results.disease_info)
+                  ) : null}
+                </div>
+              )}
             </div>
           )}
 
