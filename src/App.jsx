@@ -379,6 +379,26 @@ const DiseaseDetection = ({ onAnalyze, isLoading }) => {
             </p>
           )}
         </div>
+
+        {/* Tips Section */}
+        <div style={{ 
+          background: '#e3f2fd', 
+          border: '1px solid #bbdefb', 
+          borderRadius: '10px', 
+          padding: '20px',
+          marginTop: '20px'
+        }}>
+          <h4 style={{ color: '#1976d2', marginBottom: '15px', fontSize: '1.1rem' }}>
+            📋 Tips for Better Results:
+          </h4>
+          <ul style={{ paddingLeft: '20px', margin: 0, color: '#1565c0' }}>
+            <li style={{ marginBottom: '8px' }}>Take photos in good lighting conditions</li>
+            <li style={{ marginBottom: '8px' }}>Focus on affected areas (leaves, fruits, stems)</li>
+            <li style={{ marginBottom: '8px' }}>Avoid blurry or very dark images</li>
+            <li style={{ marginBottom: '8px' }}>Include multiple symptoms if visible</li>
+            <li>Choose the correct crop type for accurate results</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
@@ -444,6 +464,7 @@ function App() {
         status: 'confident_prediction',
         disease_info: diseaseData.Anthracnose
       });
+      setIsLoading(false);
     } else {
       // Show uncertain results for other images
       setManagerThoughts(prev => [...prev,
@@ -470,9 +491,8 @@ function App() {
         }
       });
       setImageLoadingStates(newLoadingStates);
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const handleAnalyze = async (requestData) => {
@@ -808,8 +828,8 @@ function App() {
           {/* Disease Detection Component */}
           <DiseaseDetection onAnalyze={handleAnalyze} isLoading={isLoading} />
 
-          {/* Loading Section */}
-          {isLoading && (
+          {/* Loading/Analysis Progress Section */}
+          {(isLoading || (results && managerThoughts.length > 0)) && (
             <div style={{
               background: 'white',
               padding: '40px',
@@ -818,21 +838,29 @@ function App() {
               textAlign: 'center',
               marginTop: '30px'
             }}>
-              <div style={{
-                width: '50px',
-                height: '50px',
-                border: '5px solid #f3f3f3',
-                borderTop: '5px solid #4a7c59',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite',
-                margin: '0 auto 20px'
-              }}></div>
-              <p style={{ fontSize: '1.2rem', fontWeight: '600', color: '#333', marginBottom: '20px' }}>
-                {loadingText || 'Analyzing your crop image...'}
-              </p>
+              {isLoading && (
+                <div style={{
+                  width: '50px',
+                  height: '50px',
+                  border: '5px solid #f3f3f3',
+                  borderTop: '5px solid #4a7c59',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite',
+                  margin: '0 auto 20px'
+                }}></div>
+              )}
+              
+              {isLoading && (
+                <p style={{ fontSize: '1.2rem', fontWeight: '600', color: '#333', marginBottom: '20px' }}>
+                  {loadingText || 'Analyzing your crop image...'}
+                </p>
+              )}
 
               {managerThoughts.length > 0 && (
                 <div style={{ textAlign: 'left', maxWidth: '500px', margin: '0 auto' }}>
+                  <h3 style={{ color: '#4a7c59', marginBottom: '15px', textAlign: 'center' }}>
+                    Analysis Progress:
+                  </h3>
                   {managerThoughts.map((thought, index) => (
                     <div
                       key={index}
